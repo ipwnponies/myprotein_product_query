@@ -1,0 +1,53 @@
+#! env python
+import requests
+
+URL = 'http://us.myprotein.com/variations.json?productId={}'
+WHEY_PRODUCT_ID = '10852500'
+
+
+def main():
+    flavours, pouches, sizes = get_all_products()
+
+    for i in flavours:
+        # print('Flavour: {0}, id: {1}'.format(i['name'], i['id']))
+        for k in sizes:
+            # print('\tsize: {0}, id:{1}'.format(k['name'], k['id']))
+            # print('\tPouch id: {0}'.format(pouches[0]['id']))
+            get_price(i['id'], pouches[0]['id'], k['id'])
+
+
+def get_all_products():
+    combinations = requests.get(URL.format(WHEY_PRODUCT_ID)).json()['variations']
+    flavours = combinations[0]['options']
+    pouches = combinations[1]['options']
+    sizes = combinations[2]['options']
+
+    return flavours, pouches, sizes
+
+
+def get_price(flavour_id, package_id, size_id):
+    data = {
+        'selected': 3,
+        'variation1': 5,
+        'option1': flavour_id,
+        'variation2': 6,
+        'option2': package_id,
+        'variation3': 7,
+        'option3': size_id,
+    }
+    response = requests.post(URL.format(WHEY_PRODUCT_ID), data).json()
+
+    try:
+        price = response['price'][5:]
+        print('{0}\t{1}'.format(
+            response['title'],
+            price,
+        ))
+    except KeyError:
+        price = None
+
+    return price
+
+
+if __name__ == '__main__':
+    main()
