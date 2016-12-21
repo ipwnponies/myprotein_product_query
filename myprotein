@@ -1,5 +1,6 @@
 #! env python
 import requests
+import argparse
 
 URL = 'http://us.myprotein.com/variations.json?productId={}'
 PRODUCT_ID = {
@@ -9,15 +10,23 @@ PRODUCT_ID = {
 
 
 def main():
-    for name, id in PRODUCT_ID.items():
-        print('Querying for {} products...\n'.format(name))
-        flavours, pouches, sizes = get_all_products(id)
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        'product',
+        choices=PRODUCT_ID.keys(),
+        default='whey',
+        nargs='?',
+        type=str,
+    )
+    args = parser.parse_args()
 
-        for i in flavours:
-            for k in sizes:
-                get_price(id, i['id'], pouches[0]['id'], k['id'])
+    name = args.product
+    id = PRODUCT_ID[name]
+    flavours, pouches, sizes = get_all_products(id)
 
-        print('\n')
+    for i in flavours:
+        for k in sizes:
+            get_price(id, i['id'], pouches[0]['id'], k['id'])
 
 
 def get_all_products(product_id):
