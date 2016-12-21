@@ -2,22 +2,26 @@
 import requests
 
 URL = 'http://us.myprotein.com/variations.json?productId={}'
-WHEY_PRODUCT_ID = '10852500'
+PRODUCT_ID = {
+    'whey': '10852500',
+    'creatine': '10852411',
+}
 
 
 def main():
-    flavours, pouches, sizes = get_all_products()
+    for name, id in PRODUCT_ID.items():
+        print('Querying for {} products...\n'.format(name))
+        flavours, pouches, sizes = get_all_products(id)
 
-    for i in flavours:
-        # print('Flavour: {0}, id: {1}'.format(i['name'], i['id']))
-        for k in sizes:
-            # print('\tsize: {0}, id:{1}'.format(k['name'], k['id']))
-            # print('\tPouch id: {0}'.format(pouches[0]['id']))
-            get_price(i['id'], pouches[0]['id'], k['id'])
+        for i in flavours:
+            for k in sizes:
+                get_price(id, i['id'], pouches[0]['id'], k['id'])
+
+        print('\n')
 
 
-def get_all_products():
-    combinations = requests.get(URL.format(WHEY_PRODUCT_ID)).json()['variations']
+def get_all_products(product_id):
+    combinations = requests.get(URL.format(product_id)).json()['variations']
     flavours = combinations[0]['options']
     pouches = combinations[1]['options']
     sizes = combinations[2]['options']
@@ -25,7 +29,7 @@ def get_all_products():
     return flavours, pouches, sizes
 
 
-def get_price(flavour_id, package_id, size_id):
+def get_price(product_id, flavour_id, package_id, size_id):
     data = {
         'selected': 3,
         'variation1': 5,
@@ -35,7 +39,7 @@ def get_price(flavour_id, package_id, size_id):
         'variation3': 7,
         'option3': size_id,
     }
-    response = requests.post(URL.format(WHEY_PRODUCT_ID), data).json()
+    response = requests.post(URL.format(product_id), data).json()
 
     try:
         price = response['price'][5:]
