@@ -1,12 +1,15 @@
 #! env python
 import requests
 import argparse
+import bs4
 
 URL = 'http://us.myprotein.com/variations.json?productId={}'
 PRODUCT_ID = {
     'whey': '10852500',
     'creatine': '10852411',
 }
+
+VOUCHER_URL = 'https://us.myprotein.com/voucher-codes.list'
 
 
 def main():
@@ -18,6 +21,11 @@ def main():
         nargs='?',
         type=str,
     )
+    parser.add_argument(
+            '--vouchers',
+            help='show current vouchers',
+            action='store_true',
+    )
     args = parser.parse_args()
 
     name = args.product
@@ -27,6 +35,26 @@ def main():
     for i in flavours:
         for k in sizes:
             get_price(id, i['id'], pouches[0]['id'], k['id'])
+   
+    print()
+
+    if args.vouchers:
+        get_all_vouchers()
+
+
+def get_all_vouchers():
+    print('Vouchers:')
+    print('=' * 80)
+    page = requests.get(VOUCHER_URL)
+    soup = bs4.BeautifulSoup(page.content, 'html.parser')
+    voucher_infos = soup.select('.voucher-info-wrapper')
+    for voucher in voucher_infos:
+        print(voucher.find('h2').find(text=True))
+        voucher_message = voucher.select('.voucher-message')[0]
+        message = voucher_message.find_all(text=True)
+        message = '\n'.join(message).strip()
+        print(message)
+        print('-' * 80)
 
 
 def get_all_products(product_id):
