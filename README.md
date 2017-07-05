@@ -2,10 +2,12 @@
 ## Overview
 myprotein has sales literally every other day. They always show prices for the product as "starting at" but do not let you easily see the prices of the flavours. Run this script to query the price information for all their products.
 
-## Run
+## Quickstart
 ```Shell
-make run
+make help
 
+make run
+OR
 virtualenv_run/bin/python myprotein [--whey] [--creatine] [--vouchers]
 ```
 
