@@ -4,7 +4,9 @@ myprotein has sales literally every other day. They always show prices for the p
 
 ## Run
 ```Shell
-make
+make run
+
+virtualenv_run/bin/python myprotein [--whey] [--creatine] [--vouchers]
 ```
 
 ## Output

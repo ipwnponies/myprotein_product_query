@@ -15,27 +15,36 @@ VOUCHER_URL = 'https://us.myprotein.com/voucher-codes.list'
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        'product',
-        choices=PRODUCT_ID.keys(),
-        default='whey',
-        nargs='?',
-        type=str,
+            '--whey',
+            help='Show whey products',
+            action='store_true',
+    )
+    parser.add_argument(
+            '--creatine',
+            help='Show creatine products',
+            action='store_true',
     )
     parser.add_argument(
             '--vouchers',
-            help='show current vouchers',
+            help='Show current vouchers',
             action='store_true',
     )
     args = parser.parse_args()
 
-    name = args.product
-    id = PRODUCT_ID[name]
-    flavours, pouches, sizes = get_all_products(id)
+    products = []
+    if args.whey:
+        products.append(PRODUCT_ID['whey'])
 
-    for i in flavours:
-        for k in sizes:
-            get_price(id, i['id'], pouches[0]['id'], k['id'])
-   
+    if args.creatine:
+        products.append(PRODUCT_ID['creatine'])
+
+    for product in products:
+        flavours, pouches, sizes = get_all_products(product)
+
+        for i in flavours:
+            for k in sizes:
+                get_price(product, i['id'], pouches[0]['id'], k['id'])
+
     print()
 
     if args.vouchers:
