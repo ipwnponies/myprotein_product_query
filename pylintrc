@@ -1,3 +1,6 @@
 [REPORTS]
 output-format = colorized
 reports = no
+
+[MESSAGES CONTROL]
+disable=missing-docstring

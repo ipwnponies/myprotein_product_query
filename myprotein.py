@@ -1,7 +1,8 @@
 #! env python
-import requests
 import argparse
+
 import bs4
+import requests
 
 URL = 'http://us.myprotein.com/variations.json?productId={}'
 PRODUCT_ID = {
@@ -15,19 +16,19 @@ VOUCHER_URL = 'https://us.myprotein.com/voucher-codes.list'
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-            '--whey',
-            help='Show whey products',
-            action='store_true',
+        '--whey',
+        help='Show whey products',
+        action='store_true',
     )
     parser.add_argument(
-            '--creatine',
-            help='Show creatine products',
-            action='store_true',
+        '--creatine',
+        help='Show creatine products',
+        action='store_true',
     )
     parser.add_argument(
-            '--vouchers',
-            help='Show current vouchers',
-            action='store_true',
+        '--vouchers',
+        help='Show current vouchers',
+        action='store_true',
     )
     args = parser.parse_args()
 
