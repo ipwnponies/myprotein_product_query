@@ -4,6 +4,7 @@
     -   id: trailing-whitespace
     -   id: end-of-file-fixer
     -   id: autopep8-wrapper
+        exclude: ^bin/
     -   id: check-docstring-first
     -   id: check-json
     -   id: check-added-large-files
@@ -12,6 +13,7 @@
     -   id: name-tests-test
     -   id: requirements-txt-fixer
     -   id: flake8
+        exclude: ^bin/
     -   id: check-case-conflict
     -   id: detect-private-key
     -   id: double-quote-string-fixer
