@@ -13,7 +13,7 @@ PRODUCT_ID = {
 VOUCHER_URL = 'https://us.myprotein.com/voucher-codes.list'
 
 
-def main():
+def parse_cli():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--whey',
@@ -30,7 +30,12 @@ def main():
         help='Show current vouchers',
         action='store_true',
     )
-    args = parser.parse_args()
+
+    return parser.parse_args()
+
+
+def main():
+    args = parse_cli()
 
     products = []
     if args.whey:

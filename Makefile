@@ -6,11 +6,12 @@ help: ## Print help
 
 .PHONY: run
 run: virtualenv_run ## Run script with default setting
-	virtualenv_run/bin/python ./myprotein --whey --creatine --vouchers
+	virtualenv_run/bin/python ./myprotein.py --whey --creatine --vouchers
 
 .PHONY: test
 test: virtualenv_run ## Run tests
-	virtualenv_run/bin/pre-commit run --all-files
+	virtualenv_run/bin/pytest *_test.py
+	virtualenv_run/bin/pre-commit run
 
 virtualenv_run: requirements.txt requirements-dev.txt ## Create virtualenv
 	bin/venv-update venv= -p python3.5 virtualenv_run install= -r requirements-dev.txt

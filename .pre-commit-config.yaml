@@ -30,7 +30,7 @@
     hooks:
     -   id: pylint
         name: Pylint
-        entry: pylint
+        entry: virtualenv_run/bin/pylint
         language: system
         types: [python]
         exclude: ^bin/
