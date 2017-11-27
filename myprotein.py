@@ -95,7 +95,7 @@ def get_price(product_id, flavour_id, package_id, size_id):
 
     try:
         price = response['price'][5:]
-        print('{0}\t{1}'.format(
+        print('{:70}\t{}'.format(
             response['title'],
             price,
         ))
