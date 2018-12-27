@@ -1,0 +1,6 @@
+pip==10.0.1
+pip-custom-platform==0.3.1
+pymonkey==0.2.2
+venv-update==3.1.0rc1
+virtualenv==16.0.0
+wheel==0.31.1

@@ -15,7 +15,10 @@ test: venv ## Run tests
 
 .PHONY: venv
 venv: requirements.txt requirements-dev.txt ## Create virtualenv
-	bin/venv-update venv= -p python3 venv install= -r requirements-dev.txt -r requirements.txt --quiet
+	bin/venv-update \
+		venv= -p python3 venv --quiet \
+		install= -r requirements-dev.txt -r requirements.txt --quiet \
+		bootstrap-deps= -r requirements-bootstrap.txt --quiet
 	venv/bin/pre-commit install
 
 .PHONY: clean
