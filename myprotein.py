@@ -7,6 +7,7 @@ import requests
 URL = 'http://us.myprotein.com/variations.json?productId={}'
 PRODUCT_ID = {
     'whey': '10852500',
+    'whey_pouch': '11464969',
     'creatine': '10852411',
 }
 
@@ -15,19 +16,29 @@ VOUCHER_URL = 'https://us.myprotein.com/voucher-codes.list'
 
 def parse_cli():
     parser = argparse.ArgumentParser()
+
     parser.add_argument(
+        '--vouchers',
+        help='Show current vouchers',
+        action='store_true',
+    )
+
+    whey_group = parser.add_argument_group('whey')
+    whey_group.add_argument(
         '--whey',
         help='Show whey products',
         action='store_true',
     )
-    parser.add_argument(
+    whey_group.add_argument(
+        '--whey-size',
+        help="Size of products to filter by, e.g. '2.2 lb' '1.1 lb'",
+        nargs='+',
+    )
+
+    creatine_group = parser.add_argument_group('creatine')
+    creatine_group.add_argument(
         '--creatine',
         help='Show creatine products',
-        action='store_true',
-    )
-    parser.add_argument(
-        '--vouchers',
-        help='Show current vouchers',
         action='store_true',
     )
 
@@ -40,6 +51,7 @@ def main():
     products = []
     if args.whey:
         products.append(PRODUCT_ID['whey'])
+        products.append(PRODUCT_ID['whey_pouch'])
 
     if args.creatine:
         products.append(PRODUCT_ID['creatine'])
@@ -48,6 +60,8 @@ def main():
         flavours, pouches, sizes = get_all_products(product)
 
         for i in flavours:
+            if args.whey_size:
+                sizes = [i for i in sizes if i['name'] in args.whey_size]
             for k in sizes:
                 get_price(product, i['id'], pouches[0]['id'], k['id'])
 
