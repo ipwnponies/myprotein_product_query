@@ -1,8 +1,16 @@
 #! env python
 import argparse
+import json
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Tuple
 
+import addict
 import bs4
 import requests
+
+JsonDict = Dict[str, Any]
 
 URL = 'http://us.myprotein.com/variations.json?productId={}'
 PRODUCT_ID = {
@@ -57,13 +65,13 @@ def main():
         products.append(PRODUCT_ID['creatine'])
 
     for product in products:
-        flavours, pouches, sizes = get_all_products(product)
+        flavours, sizes = get_all_products(product)
 
         for i in flavours:
             if args.whey_size:
                 sizes = [i for i in sizes if i['name'] in args.whey_size]
             for k in sizes:
-                get_price(product, i['id'], pouches[0]['id'], k['id'])
+                get_price(product, i['id'], None, k['id'])
 
     print()
 
@@ -86,13 +94,24 @@ def get_all_vouchers():
         print('-' * 80)
 
 
-def get_all_products(product_id):
-    combinations = requests.get(URL.format(product_id)).json()['variations']
-    flavours = combinations[0]['options']
-    pouches = combinations[1]['options']
-    sizes = combinations[2]['options']
+def get_all_products(product_id) -> Tuple[List[JsonDict], List[JsonDict]]:
+    url = f'http://us.myprotein.com/variations.json?productId={product_id}'
+    response = addict.Dict(requests.get(url).json())
+    flavours = [
+        flavour
+        for variation in response.variations
+        for flavour in variation.options
+        if variation.variation == 'Flavour'
+    ]
 
-    return flavours, pouches, sizes
+    sizes = [
+        size
+        for variation in response.variations
+        for size in variation.options
+        if variation.variation == 'Amount'
+    ]
+
+    return flavours, sizes
 
 
 def get_price(product_id, flavour_id, package_id, size_id):
