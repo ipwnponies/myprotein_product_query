@@ -12,6 +12,7 @@ run: venv ## Run script with default setting
 test: venv ## Run tests
 	venv/bin/pytest *_test.py
 	venv/bin/pre-commit run
+	venv/bin/mypy *.py
 
 .PHONY: venv
 venv: requirements.txt requirements-dev.txt ## Create virtualenv

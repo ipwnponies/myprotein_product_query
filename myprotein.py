@@ -22,7 +22,7 @@ PRODUCT_ID = {
 VOUCHER_URL = 'https://us.myprotein.com/voucher-codes.list'
 
 
-def parse_cli():
+def parse_cli() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
@@ -53,7 +53,7 @@ def parse_cli():
     return parser.parse_args()
 
 
-def main():
+def main() -> None:
     args = parse_cli()
 
     products = []
@@ -79,7 +79,7 @@ def main():
         get_all_vouchers()
 
 
-def get_all_vouchers():
+def get_all_vouchers() -> None:
     print('Vouchers:')
     print('=' * 80)
     page = requests.get(VOUCHER_URL)
@@ -114,7 +114,7 @@ def get_all_products(product_id) -> Tuple[List[JsonDict], List[JsonDict]]:
     return flavours, sizes
 
 
-def get_price(product_id, flavour_id, package_id, size_id):
+def get_price(product_id, flavour_id, package_id, size_id) -> str:
     data = {
         'selected': 3,
         'variation1': 5,
