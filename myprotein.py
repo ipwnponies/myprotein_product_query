@@ -68,10 +68,8 @@ def main() -> None:
         flavours, sizes = get_all_products(product)
 
         for i in flavours:
-            if args.whey_size:
-                sizes = [i for i in sizes if i['name'] in args.whey_size]
             for k in sizes:
-                get_price(product, i['id'], None, k['id'])
+                print(f'Query for flavour {i} and size {k}')
 
     print()
 
@@ -92,6 +90,30 @@ def get_all_vouchers() -> None:
         message = '\n'.join(message).strip()
         print(message)
         print('-' * 80)
+
+
+def get_price_data() -> Dict[str, float]:
+    """Get price information for skus.
+
+    :return: Mapping from product id to price
+    """
+
+    product_id = 10852500
+    url = f'https://us.myprotein.com/{product_id}.html'
+
+    response = requests.get(url)
+    dom = bs4.BeautifulSoup(response.text, 'html.parser')
+
+    for script in dom.find_all('script', type='application/ld+json'):
+        script_json = addict.Dict(json.loads(script.string))
+
+        if 'offers' in script_json:
+            price_data = {i.sku: float(i.price) for i in script_json.offers}
+            break
+    else:
+        raise ValueError('Could not find product data from {url}')
+
+    return price_data
 
 
 def get_all_products(product_id) -> Tuple[List[JsonDict], List[JsonDict]]:
