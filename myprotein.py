@@ -160,5 +160,33 @@ def get_price(product_id, flavour_id, package_id, size_id) -> str:
     return price
 
 
+def resolve_options_to_product_id(flavour, size) -> str:
+    product_id = 10852500
+    response = requests.post(
+        f'https://us.myprotein.com/{product_id}.variations',
+        json={
+            # No idea what this means but it needs to be set to 2.
+            # Otherwise API ignores other parameters and returns default product (unflavoured)
+            'selected': 2,
+            'variation1': '5',  # 5 == Flavour
+            'option1': flavour,
+            'variation2': '7',  # 7 == Size
+            'option2': size,
+        },
+    )
+    response.raise_for_status()
+
+    dom = bs4.BeautifulSoup(response.text, 'html.parser')
+
+    # data-child-id is the attribute that contains the canonical product id
+    product_id_node = dom.find(attrs={'data-child-id': True})
+
+    if not product_id_node:
+        err_msg = f'Could not get data to resolve options to product id. Url: {response.url}'
+        raise ValueError(err_msg)
+
+    return product_id_node['data-child-id']
+
+
 if __name__ == '__main__':
     main()
