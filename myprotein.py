@@ -1,6 +1,10 @@
 #! env python
 import argparse
 import json
+from dataclasses import asdict
+from dataclasses import dataclass
+# noreorder Disable wrong-import-order until isort is fixed to recognize dataclasses as standard
+# noreorder pylint: disable=wrong-import-order
 from typing import Any
 from typing import Dict
 from typing import List
@@ -10,7 +14,10 @@ import addict
 import bs4
 import requests
 
+# noreorder pylint: enable=wrong-import-order
+
 JsonDict = Dict[str, Any]
+AddictDict = Any  # pylint: disable=invalid-name
 
 URL = 'http://us.myprotein.com/variations.json?productId={}'
 PRODUCT_ID = {
@@ -20,6 +27,13 @@ PRODUCT_ID = {
 }
 
 VOUCHER_URL = 'https://us.myprotein.com/voucher-codes.list'
+
+
+@dataclass
+class ProductInformation:
+    flavour: str
+    size: str
+    price: float
 
 
 def parse_cli() -> argparse.Namespace:
@@ -64,14 +78,18 @@ def main() -> None:
     if args.creatine:
         products.append(PRODUCT_ID['creatine'])
 
+    price_data = get_price_data()
+    product_information: List[ProductInformation] = []
+
     for product in products:
         flavours, sizes = get_all_products(product)
 
-        for i in flavours:
-            for k in sizes:
-                print(f'Query for flavour {i} and size {k}')
+        for flavour in flavours:
+            for size in sizes:
+                product_id = resolve_options_to_product_id(flavour.id, size.id)
+                product_information.append(ProductInformation(flavour.name, size.name, price_data[product_id]))
 
-    print()
+    print(json.dumps(product_information, indent=2, default=asdict))
 
     if args.vouchers:
         get_all_vouchers()
@@ -116,7 +134,7 @@ def get_price_data() -> Dict[str, float]:
     return price_data
 
 
-def get_all_products(product_id) -> Tuple[List[JsonDict], List[JsonDict]]:
+def get_all_products(product_id) -> Tuple[List[AddictDict], List[AddictDict]]:
     url = f'http://us.myprotein.com/variations.json?productId={product_id}'
     response = addict.Dict(requests.get(url).json())
     flavours = [
@@ -136,31 +154,7 @@ def get_all_products(product_id) -> Tuple[List[JsonDict], List[JsonDict]]:
     return flavours, sizes
 
 
-def get_price(product_id, flavour_id, package_id, size_id) -> str:
-    data = {
-        'selected': 3,
-        'variation1': 5,
-        'option1': flavour_id,
-        'variation2': 6,
-        'option2': package_id,
-        'variation3': 7,
-        'option3': size_id,
-    }
-    response = requests.post(URL.format(product_id), data).json()
-
-    try:
-        price = response['price'][5:]
-        print('{:70}\t{}'.format(
-            response['title'],
-            price,
-        ))
-    except KeyError:
-        price = None
-
-    return price
-
-
-def resolve_options_to_product_id(flavour, size) -> str:
+def resolve_options_to_product_id(flavour: int, size: int) -> str:
     product_id = 10852500
     response = requests.post(
         f'https://us.myprotein.com/{product_id}.variations',
