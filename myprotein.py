@@ -1,6 +1,7 @@
 #! env python
 import argparse
 import json
+import operator
 from dataclasses import asdict
 from dataclasses import dataclass
 # noreorder Disable wrong-import-order until isort is fixed to recognize dataclasses as standard
@@ -13,6 +14,7 @@ from typing import Tuple
 import addict
 import bs4
 import requests
+from tabulate import tabulate
 
 # noreorder pylint: enable=wrong-import-order
 
@@ -89,10 +91,15 @@ def main() -> None:
                 product_id = resolve_options_to_product_id(flavour.id, size.id)
                 product_information.append(ProductInformation(flavour.name, size.name, price_data[product_id]))
 
-    print(json.dumps(product_information, indent=2, default=asdict))
+    print_product_information(product_information)
 
     if args.vouchers:
         get_all_vouchers()
+
+
+def print_product_information(product_information: List[ProductInformation]) -> None:
+    table = [asdict(i) for i in sorted(product_information, key=operator.attrgetter('size', 'price'))]
+    print(tabulate(table, headers='keys'))
 
 
 def get_all_vouchers() -> None:
