@@ -1,5 +1,6 @@
 #! env python
 import argparse
+import itertools
 import json
 import operator
 from dataclasses import asdict
@@ -15,6 +16,7 @@ import addict
 import bs4
 import requests
 from tabulate import tabulate
+from tqdm import tqdm
 
 # noreorder pylint: enable=wrong-import-order
 
@@ -83,13 +85,14 @@ def main() -> None:
     price_data = get_price_data()
     product_information: List[ProductInformation] = []
 
-    for product in products:
+    for product in tqdm(products, desc='Products', unit=''):
         flavours, sizes = get_all_products(product)
 
-        for flavour in flavours:
-            for size in sizes:
-                product_id = resolve_options_to_product_id(flavour.id, size.id)
-                product_information.append(ProductInformation(flavour.name, size.name, price_data[product_id]))
+        # Listify so that tqdm can count
+        product_combinations = list(itertools.product(flavours, sizes))
+        for flavour, size in tqdm(product_combinations, unit='items'):
+            product_id = resolve_options_to_product_id(flavour.id, size.id)
+            product_information.append(ProductInformation(flavour.name, size.name, price_data[product_id]))
 
     print_product_information(product_information)
 
