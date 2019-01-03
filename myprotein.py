@@ -1,5 +1,6 @@
 #! env python
 import argparse
+import concurrent.futures
 import itertools
 import json
 import operator
@@ -11,7 +12,6 @@ from functools import lru_cache
 from typing import Any
 from typing import cast
 from typing import Dict
-from typing import Iterator
 from typing import List
 from typing import NamedTuple
 from typing import Tuple
@@ -105,15 +105,23 @@ def main() -> None:
     for product in tqdm(products, desc='Products', unit=''):
         flavours, sizes = get_all_products(product)
 
-        # Listify so that tqdm can count
-        product_combinations = list(itertools.product(flavours, sizes))
-        iterator: Iterator[Tuple[Option, Option]] = tqdm(product_combinations, unit='items')
-        for flavour, size in iterator:
-            try:
-                product_id = resolve_options_to_product_id(flavour, size)
-                product_information.append(ProductInformation(flavour.name, size.name, price_data[product_id]))
-            except ProductNotExistError as exc:
-                print(f'Variation does not exist, skipping... {exc}')
+        with concurrent.futures.ThreadPoolExecutor(max_workers=15) as executor:
+            futures_arguments = {
+                executor.submit(resolve_options_to_product_id, flavour, size): (flavour, size)
+                for flavour, size in itertools.product(flavours, sizes)
+            }
+
+            for future in tqdm(
+                    concurrent.futures.as_completed(futures_arguments),
+                    total=len(futures_arguments),
+                    unit='items',
+            ):
+                flavour, size = futures_arguments[future]
+                try:
+                    product_id = future.result()
+                    product_information.append(ProductInformation(flavour.name, size.name, price_data[product_id]))
+                except ProductNotExistError as exc:
+                    tqdm.write(f'Variation does not exist, skipping... {exc}')
 
     print_product_information(product_information)
 
