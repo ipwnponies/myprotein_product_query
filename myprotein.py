@@ -5,11 +5,13 @@ import json
 import operator
 from dataclasses import asdict
 from dataclasses import dataclass
+from functools import lru_cache
 # noreorder Disable wrong-import-order until isort is fixed to recognize dataclasses as standard
 # noreorder pylint: disable=wrong-import-order
 from typing import Any
 from typing import Dict
 from typing import List
+from typing import NamedTuple
 from typing import Tuple
 
 import addict
@@ -23,6 +25,24 @@ from tqdm import tqdm
 JsonDict = Dict[str, Any]
 AddictDict = Any  # pylint: disable=invalid-name
 
+
+class Option(NamedTuple):
+    id: str
+    name: str
+    value: str
+
+
+@dataclass
+class ProductInformation:
+    flavour: str
+    size: str
+    price: float
+
+
+class ProductNotExistError(Exception):
+    pass
+
+
 URL = 'http://us.myprotein.com/variations.json?productId={}'
 PRODUCT_ID = {
     'whey': '10852500',
@@ -32,12 +52,7 @@ PRODUCT_ID = {
 
 VOUCHER_URL = 'https://us.myprotein.com/voucher-codes.list'
 
-
-@dataclass
-class ProductInformation:
-    flavour: str
-    size: str
-    price: float
+DEFAULT_PRODUCT_INFORMATION = ProductInformation('Unflavoured', '2.2 lb', 0.0)
 
 
 def parse_cli() -> argparse.Namespace:
@@ -91,8 +106,11 @@ def main() -> None:
         # Listify so that tqdm can count
         product_combinations = list(itertools.product(flavours, sizes))
         for flavour, size in tqdm(product_combinations, unit='items'):
-            product_id = resolve_options_to_product_id(flavour.id, size.id)
-            product_information.append(ProductInformation(flavour.name, size.name, price_data[product_id]))
+            try:
+                product_id = resolve_options_to_product_id(flavour, size)
+                product_information.append(ProductInformation(flavour.name, size.name, price_data[product_id]))
+            except ProductNotExistError as exc:
+                print(f'Variation does not exist, skipping... {exc}')
 
     print_product_information(product_information)
 
@@ -144,18 +162,18 @@ def get_price_data() -> Dict[str, float]:
     return price_data
 
 
-def get_all_products(product_id) -> Tuple[List[AddictDict], List[AddictDict]]:
+def get_all_products(product_id: str) -> Tuple[List[Option], List[Option]]:
     url = f'http://us.myprotein.com/variations.json?productId={product_id}'
     response = addict.Dict(requests.get(url).json())
     flavours = [
-        flavour
+        Option(**flavour)
         for variation in response.variations
         for flavour in variation.options
         if variation.variation == 'Flavour'
     ]
 
     sizes = [
-        size
+        Option(**size)
         for variation in response.variations
         for size in variation.options
         if variation.variation == 'Amount'
@@ -164,7 +182,30 @@ def get_all_products(product_id) -> Tuple[List[AddictDict], List[AddictDict]]:
     return flavours, sizes
 
 
-def resolve_options_to_product_id(flavour: int, size: int) -> str:
+@lru_cache()
+def get_default_product_not_found() -> str:
+    """Get default product.
+
+    When invalid options are provided, the defualt product is returned. Which happens to be unflavoured whey at 2.2 lbs.
+    This is DEFAULT_PRODUCT_INFORMATION.
+    """
+    product_id = 10852500
+    response = requests.get(f'https://us.myprotein.com/{product_id}.variations')
+    response.raise_for_status()
+
+    dom = bs4.BeautifulSoup(response.text, 'html.parser')
+
+    # data-child-id is the attribute that contains the canonical product id
+    product_id_node = dom.find(attrs={'data-child-id': True})
+
+    if not product_id_node:
+        err_msg = f'Could not get data to resolve options to product id. Url: {response.url}'
+        raise ValueError(err_msg)
+
+    return product_id_node['data-child-id']
+
+
+def resolve_options_to_product_id(flavour: Option, size: Option) -> str:
     product_id = 10852500
     response = requests.post(
         f'https://us.myprotein.com/{product_id}.variations',
@@ -173,9 +214,9 @@ def resolve_options_to_product_id(flavour: int, size: int) -> str:
             # Otherwise API ignores other parameters and returns default product (unflavoured)
             'selected': 2,
             'variation1': '5',  # 5 == Flavour
-            'option1': flavour,
+            'option1': flavour.id,
             'variation2': '7',  # 7 == Size
-            'option2': size,
+            'option2': size.id,
         },
     )
     response.raise_for_status()
@@ -188,6 +229,17 @@ def resolve_options_to_product_id(flavour: int, size: int) -> str:
     if not product_id_node:
         err_msg = f'Could not get data to resolve options to product id. Url: {response.url}'
         raise ValueError(err_msg)
+
+    product_id = product_id_node['data-child-id']
+    default_product_id = get_default_product_not_found()
+
+    # IFF not the actually the default product
+    if all({
+            product_id == default_product_id,
+            flavour.name != DEFAULT_PRODUCT_INFORMATION.flavour,
+            size.name != DEFAULT_PRODUCT_INFORMATION.size,
+    }):
+        raise ProductNotExistError(f'Flavour {flavour} and size {size} does not exist.')
 
     return product_id_node['data-child-id']
 
