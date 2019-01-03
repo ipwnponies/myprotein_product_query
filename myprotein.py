@@ -9,7 +9,9 @@ from functools import lru_cache
 # noreorder Disable wrong-import-order until isort is fixed to recognize dataclasses as standard
 # noreorder pylint: disable=wrong-import-order
 from typing import Any
+from typing import cast
 from typing import Dict
+from typing import Iterator
 from typing import List
 from typing import NamedTuple
 from typing import Tuple
@@ -105,7 +107,8 @@ def main() -> None:
 
         # Listify so that tqdm can count
         product_combinations = list(itertools.product(flavours, sizes))
-        for flavour, size in tqdm(product_combinations, unit='items'):
+        iterator: Iterator[Tuple[Option, Option]] = tqdm(product_combinations, unit='items')
+        for flavour, size in iterator:
             try:
                 product_id = resolve_options_to_product_id(flavour, size)
                 product_information.append(ProductInformation(flavour.name, size.name, price_data[product_id]))
@@ -202,7 +205,7 @@ def get_default_product_not_found() -> str:
         err_msg = f'Could not get data to resolve options to product id. Url: {response.url}'
         raise ValueError(err_msg)
 
-    return product_id_node['data-child-id']
+    return cast(str, product_id_node['data-child-id'])
 
 
 def resolve_options_to_product_id(flavour: Option, size: Option) -> str:
@@ -241,7 +244,7 @@ def resolve_options_to_product_id(flavour: Option, size: Option) -> str:
     }):
         raise ProductNotExistError(f'Flavour {flavour} and size {size} does not exist.')
 
-    return product_id_node['data-child-id']
+    return cast(str, product_id_node['data-child-id'])
 
 
 if __name__ == '__main__':
