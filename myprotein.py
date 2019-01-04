@@ -51,10 +51,16 @@ PRODUCT_ID = {
     'whey_pouch': '11464969',
     'creatine': '10852411',
 }
+DEFAULT_PRODUCT_INFORMATION = {
+    # Whey
+    '10852500': ProductInformation('Unflavoured', '2.2 lb', 0.0),
+    # Whey pouch
+    '11464969': ProductInformation('Vanilla', '0.55 lb', 0.0),
+    # Creatine
+    '10852411': ProductInformation('Unflavoured', '1.1 lb', 0.0),
+}
 
 VOUCHER_URL = 'https://us.myprotein.com/voucher-codes.list'
-
-DEFAULT_PRODUCT_INFORMATION = ProductInformation('Unflavoured', '2.2 lb', 0.0)
 
 
 def parse_cli() -> argparse.Namespace:
@@ -99,15 +105,15 @@ def main() -> None:
     if args.creatine:
         products.append(PRODUCT_ID['creatine'])
 
-    price_data = get_price_data()
     product_information: List[ProductInformation] = []
 
-    for product in tqdm(products, desc='Products', unit=''):
-        flavours, sizes = get_all_products(product)
+    for product_category_id in tqdm(products, desc='Products', unit=''):
+        flavours, sizes = get_all_products(product_category_id)
+        price_data = get_price_data(product_category_id)
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=15) as executor:
             futures_arguments = {
-                executor.submit(resolve_options_to_product_id, flavour, size): (flavour, size)
+                executor.submit(resolve_options_to_product_id, product_category_id, flavour, size): (flavour, size)
                 for flavour, size in itertools.product(flavours, sizes)
             }
 
@@ -149,14 +155,14 @@ def get_all_vouchers() -> None:
         print('-' * 80)
 
 
-def get_price_data() -> Dict[str, float]:
+@lru_cache()
+def get_price_data(product_category_id: str) -> Dict[str, float]:
     """Get price information for skus.
 
     :return: Mapping from product id to price
     """
 
-    product_id = 10852500
-    url = f'https://us.myprotein.com/{product_id}.html'
+    url = f'https://us.myprotein.com/{product_category_id}.html'
 
     response = requests.get(url)
     dom = bs4.BeautifulSoup(response.text, 'html.parser')
@@ -194,14 +200,13 @@ def get_all_products(product_id: str) -> Tuple[List[Option], List[Option]]:
 
 
 @lru_cache()
-def get_default_product_not_found() -> str:
+def get_default_product_not_found(product_category_id: str) -> str:
     """Get default product.
 
     When invalid options are provided, the defualt product is returned. Which happens to be unflavoured whey at 2.2 lbs.
     This is DEFAULT_PRODUCT_INFORMATION.
     """
-    product_id = 10852500
-    response = requests.get(f'https://us.myprotein.com/{product_id}.variations')
+    response = requests.get(f'https://us.myprotein.com/{product_category_id}.variations')
     response.raise_for_status()
 
     dom = bs4.BeautifulSoup(response.text, 'html.parser')
@@ -216,10 +221,9 @@ def get_default_product_not_found() -> str:
     return cast(str, product_id_node['data-child-id'])
 
 
-def resolve_options_to_product_id(flavour: Option, size: Option) -> str:
-    product_id = 10852500
+def resolve_options_to_product_id(product_category_id: str, flavour: Option, size: Option) -> str:
     response = requests.post(
-        f'https://us.myprotein.com/{product_id}.variations',
+        f'https://us.myprotein.com/{product_category_id}.variations',
         json={
             # No idea what this means but it needs to be set to 2.
             # Otherwise API ignores other parameters and returns default product (unflavoured)
@@ -242,13 +246,14 @@ def resolve_options_to_product_id(flavour: Option, size: Option) -> str:
         raise ValueError(err_msg)
 
     product_id = product_id_node['data-child-id']
-    default_product_id = get_default_product_not_found()
+    default_product_id = get_default_product_not_found(product_category_id)
+    default_product_information = DEFAULT_PRODUCT_INFORMATION[product_category_id]
 
     # IFF not the actually the default product
     if all({
             product_id == default_product_id,
-            flavour.name != DEFAULT_PRODUCT_INFORMATION.flavour,
-            size.name != DEFAULT_PRODUCT_INFORMATION.size,
+            flavour.name != default_product_information.flavour,
+            size.name != default_product_information.size,
     }):
         raise ProductNotExistError(f'Flavour {flavour} and size {size} does not exist.')
 
