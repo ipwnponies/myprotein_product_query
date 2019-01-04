@@ -1,2 +1,5 @@
+addict
 beautifulsoup4
 requests
+tabulate
+tqdm

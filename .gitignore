@@ -1,3 +1,4 @@
 .*.swp
 *.py[co]
 /venv/
+/.mypy_cache/
