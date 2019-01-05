@@ -50,14 +50,17 @@ PRODUCT_ID = {
     'whey': '10852500',
     'whey_pouch': '11464969',
     'creatine': '10852411',
+    'whey_isolate': '10852482',
 }
 DEFAULT_PRODUCT_INFORMATION = {
     # Whey
-    '10852500': ProductInformation('Unflavoured', '2.2 lb', 0.0),
+    '10852500': ProductInformation('Unflavored', '2.2 lb', 0.0),
     # Whey pouch
     '11464969': ProductInformation('Vanilla', '0.55 lb', 0.0),
     # Creatine
-    '10852411': ProductInformation('Unflavoured', '1.1 lb', 0.0),
+    '10852411': ProductInformation('Unflavored', '1.1 lb', 0.0),
+    # Whey Isolate
+    '10852482': ProductInformation('Unflavored', '2.2 lb', 0.0),
 }
 
 VOUCHER_URL = 'https://us.myprotein.com/voucher-codes.list'
