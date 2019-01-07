@@ -75,42 +75,44 @@ def parse_cli() -> argparse.Namespace:
         action='store_true',
     )
 
-    whey_group = parser.add_argument_group('whey')
-    whey_group.add_argument(
-        '--whey',
-        help='Show whey products',
-        action='store_true',
-    )
-    whey_group.add_argument(
-        '--whey-size',
-        help="Size of products to filter by, e.g. '2.2 lb' '1.1 lb'",
-        nargs='+',
-    )
-
-    creatine_group = parser.add_argument_group('creatine')
-    creatine_group.add_argument(
-        '--creatine',
-        help='Show creatine products',
+    parser.add_argument(
+        '-l',
+        '--list',
+        help='List possible product categories to query',
         action='store_true',
     )
 
-    return parser.parse_args()
+    all_product_categories = sorted(PRODUCT_ID.keys())
+
+    def element_in_list(element: str) -> str:
+        if element not in all_product_categories:
+            raise KeyError(f'{element} is not in list. Use -l to see all possible values.')
+        else:
+            return element
+
+    parser.add_argument(
+        'product_categories',
+        help='List of products to query %(default)s',
+        nargs='*',
+        default=all_product_categories,
+        type=element_in_list,
+    )
+
+    args = parser.parse_args()
+
+    if args.list:
+        parser.exit(message='\n'.join(all_product_categories))
+
+    return args
 
 
 def main() -> None:
     args = parse_cli()
 
-    products = []
-    if args.whey:
-        products.append(PRODUCT_ID['whey'])
-        products.append(PRODUCT_ID['whey_pouch'])
-
-    if args.creatine:
-        products.append(PRODUCT_ID['creatine'])
-
     product_information: List[ProductInformation] = []
 
-    for product_category_id in tqdm(products, desc='Products', unit=''):
+    for product_category in tqdm(args.product_categories, desc='Products', unit=''):
+        product_category_id = PRODUCT_ID[product_category]
         flavours, sizes = get_all_products(product_category_id)
         price_data = get_price_data(product_category_id)
 
@@ -177,7 +179,7 @@ def get_price_data(product_category_id: str) -> Dict[str, float]:
             price_data = {i.sku: float(i.price) for i in script_json.offers}
             break
     else:
-        raise ValueError('Could not find product data from {url}')
+        raise ValueError(f'Could not find product data from {url}')
 
     return price_data
 
