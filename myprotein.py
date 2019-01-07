@@ -49,7 +49,7 @@ URL = 'http://us.myprotein.com/variations.json?productId={}'
 PRODUCT_ID = {
     'whey': '10852500',
     'whey_pouch': '11464969',
-    'creatine': '10852411',
+    'creatine': '10852407',
     'whey_isolate': '10852482',
 }
 DEFAULT_PRODUCT_INFORMATION = {
@@ -58,7 +58,7 @@ DEFAULT_PRODUCT_INFORMATION = {
     # Whey pouch
     '11464969': ProductInformation('Vanilla', '0.55 lb', 0.0),
     # Creatine
-    '10852411': ProductInformation('Unflavored', '1.1 lb', 0.0),
+    '10852407': ProductInformation('Unflavored', '2.2 lb', 0.0),
     # Whey Isolate
     '10852482': ProductInformation('Unflavored', '2.2 lb', 0.0),
 }
