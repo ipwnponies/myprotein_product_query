@@ -48,10 +48,14 @@ class ProductNotExistError(Exception):
 
 URL = 'http://us.myprotein.com/variations.json?productId={}'
 PRODUCT_INFORMATION = {
-    '10852500': ProductInformation('whey', 'Unflavored', '2.2 lb', 0.0),
+    # Whey
+    '10852500': ProductInformation('impact_whey', 'Unflavored', '2.2 lb', 0.0),
     '11464969': ProductInformation('whey_pouch', 'Vanilla', '0.55 lb', 0.0),
-    '10852407': ProductInformation('creatine', 'Unflavored', '2.2 lb', 0.0),
     '10852482': ProductInformation('whey_isolate', 'Unflavored', '2.2 lb', 0.0),
+    '11111095': ProductInformation('iospro', 'Unflavored', '1.1 lb', 0.0),
+    # Creatine
+    '10852407': ProductInformation('creatine_monohydrate', 'Unflavored', '2.2 lb', 0.0),
+    '10852411': ProductInformation('creapure', 'Unflavored', '1.1 lb', 0.0),
 }
 
 VOUCHER_URL = 'https://us.myprotein.com/voucher-codes.list'
