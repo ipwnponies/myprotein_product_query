@@ -36,6 +36,7 @@ class Option(NamedTuple):
 
 @dataclass
 class ProductInformation:
+    category: str
     flavour: str
     size: str
     price: float
@@ -46,21 +47,11 @@ class ProductNotExistError(Exception):
 
 
 URL = 'http://us.myprotein.com/variations.json?productId={}'
-PRODUCT_ID = {
-    'whey': '10852500',
-    'whey_pouch': '11464969',
-    'creatine': '10852407',
-    'whey_isolate': '10852482',
-}
-DEFAULT_PRODUCT_INFORMATION = {
-    # Whey
-    '10852500': ProductInformation('Unflavored', '2.2 lb', 0.0),
-    # Whey pouch
-    '11464969': ProductInformation('Vanilla', '0.55 lb', 0.0),
-    # Creatine
-    '10852407': ProductInformation('Unflavored', '2.2 lb', 0.0),
-    # Whey Isolate
-    '10852482': ProductInformation('Unflavored', '2.2 lb', 0.0),
+PRODUCT_INFORMATION = {
+    '10852500': ProductInformation('whey', 'Unflavored', '2.2 lb', 0.0),
+    '11464969': ProductInformation('whey_pouch', 'Vanilla', '0.55 lb', 0.0),
+    '10852407': ProductInformation('creatine', 'Unflavored', '2.2 lb', 0.0),
+    '10852482': ProductInformation('whey_isolate', 'Unflavored', '2.2 lb', 0.0),
 }
 
 VOUCHER_URL = 'https://us.myprotein.com/voucher-codes.list'
@@ -82,7 +73,7 @@ def parse_cli() -> argparse.Namespace:
         action='store_true',
     )
 
-    all_product_categories = sorted(PRODUCT_ID.keys())
+    all_product_categories = sorted(i.category for i in PRODUCT_INFORMATION.values())
 
     def element_in_list(element: str) -> str:
         if element not in all_product_categories:
@@ -106,13 +97,23 @@ def parse_cli() -> argparse.Namespace:
     return args
 
 
+def get_product_information(name: str) -> str:
+    for category_id, product_information in PRODUCT_INFORMATION.items():
+        if product_information.category == name:
+            return category_id
+
+    # Should have found something
+    raise Exception('wtf')
+
+
 def main() -> None:
     args = parse_cli()
 
     product_information: List[ProductInformation] = []
 
-    for product_category in tqdm(args.product_categories, desc='Products', unit=''):
-        product_category_id = PRODUCT_ID[product_category]
+    product_category_ids = [get_product_information(i) for i in args.product_categories]
+
+    for product_category_id in tqdm(product_category_ids, desc='Products', unit=''):
         flavours, sizes = get_all_products(product_category_id)
         price_data = get_price_data(product_category_id)
 
@@ -130,7 +131,10 @@ def main() -> None:
                 flavour, size = futures_arguments[future]
                 try:
                     product_id = future.result()
-                    product_information.append(ProductInformation(flavour.name, size.name, price_data[product_id]))
+                    category = PRODUCT_INFORMATION[product_category_id].category
+                    product_information.append(
+                        ProductInformation(category, flavour.name, size.name, price_data[product_id]),
+                    )
                 except ProductNotExistError as exc:
                     tqdm.write(f'Variation does not exist, skipping... {exc}')
 
@@ -141,7 +145,7 @@ def main() -> None:
 
 
 def print_product_information(product_information: List[ProductInformation]) -> None:
-    table = [asdict(i) for i in sorted(product_information, key=operator.attrgetter('size', 'price'))]
+    table = [asdict(i) for i in sorted(product_information, key=operator.attrgetter('category', 'size', 'price'))]
     print(tabulate(table, headers='keys'))
 
 
@@ -209,7 +213,7 @@ def get_default_product_not_found(product_category_id: str) -> str:
     """Get default product.
 
     When invalid options are provided, the defualt product is returned. Which happens to be unflavoured whey at 2.2 lbs.
-    This is DEFAULT_PRODUCT_INFORMATION.
+    This is PRODUCT_INFORMATION.
     """
     response = requests.get(f'https://us.myprotein.com/{product_category_id}.variations')
     response.raise_for_status()
@@ -252,7 +256,7 @@ def resolve_options_to_product_id(product_category_id: str, flavour: Option, siz
 
     product_id = product_id_node['data-child-id']
     default_product_id = get_default_product_not_found(product_category_id)
-    default_product_information = DEFAULT_PRODUCT_INFORMATION[product_category_id]
+    default_product_information = PRODUCT_INFORMATION[product_category_id]
 
     # IFF not the actually the default product
     if all({
