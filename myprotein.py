@@ -107,7 +107,7 @@ def get_product_information(name: str) -> str:
             return category_id
 
     # Should have found something
-    raise Exception('wtf')
+    raise Exception('This should not happen, name should always match product category.')
 
 
 def main() -> None:
