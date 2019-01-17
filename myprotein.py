@@ -4,10 +4,13 @@ import concurrent.futures
 import itertools
 import json
 import operator
+# pylint doesn't work correctly locally and in TravisCI env. This can be removed when isort releases updated version
+# noreorder pylint: disable=wrong-import-order
 from dataclasses import asdict
 from dataclasses import dataclass
+# noreorder pylint: enable=wrong-import-order
 from functools import lru_cache
-# noreorder Disable wrong-import-order until isort is fixed to recognize dataclasses as standard
+# Disable wrong-import-order until isort is fixed to recognize dataclasses as standard
 # noreorder pylint: disable=wrong-import-order
 from typing import Any
 from typing import cast
