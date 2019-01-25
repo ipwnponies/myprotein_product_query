@@ -1,7 +1,10 @@
+from unittest import mock
+
 import pytest
 import responses
 
 import myprotein
+from myprotein import ProductInformation
 
 
 @pytest.fixture(autouse=True)
@@ -12,6 +15,7 @@ def mock_responses():  # type: ignore
 
 @responses.activate
 def test_get_price_data() -> None:
+    """Test that get_price_data can parse price data from request."""
     product_category_id = 'test_category'
     body = r'''
 <html>
@@ -58,3 +62,22 @@ def test_get_price_data() -> None:
         '456': 456.0,
         '999': 999.0,
     }
+
+
+def test_get_product_information() -> None:
+    """Test that get_product_information returns product category key."""
+    product_info = {
+        '12345': ProductInformation('test_name', 'test_flavour', 'test_size', 9.9),
+    }
+    with mock.patch.object(myprotein, 'PRODUCT_INFORMATION', product_info, spec_set=True):
+        assert myprotein.get_product_information('test_name') == '12345'
+
+
+def test_get_product_information_not_found() -> None:
+    """Test that get_product_information raises Error if product is not in known list."""
+    product_info = {
+        '12345': ProductInformation('test_name', 'test_flavour', 'test_size', 9.9),
+    }
+    with mock.patch.object(myprotein, 'PRODUCT_INFORMATION', product_info, spec_set=True):
+        with pytest.raises(Exception):
+            myprotein.get_product_information('not a real thing')

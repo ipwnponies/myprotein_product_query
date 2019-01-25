@@ -61,7 +61,7 @@ PRODUCT_INFORMATION = {
 VOUCHER_URL = 'https://us.myprotein.com/voucher-codes.list'
 
 
-def parse_cli() -> argparse.Namespace:
+def parse_cli() -> argparse.Namespace:  # pragma: no cover
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
