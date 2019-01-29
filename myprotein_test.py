@@ -1,4 +1,6 @@
+import json
 from unittest import mock
+from unittest import TestCase
 
 import pytest
 import responses
@@ -81,3 +83,58 @@ def test_get_product_information_not_found() -> None:
     with mock.patch.object(myprotein, 'PRODUCT_INFORMATION', product_info, spec_set=True):
         with pytest.raises(Exception):
             myprotein.get_product_information('not a real thing')
+
+
+@responses.activate
+def test_get_all_products() -> None:
+    response = {
+        'variations': [
+            {
+                'id': 100,
+                'variation': 'Flavour',
+                'options': [
+                    {
+                        'id': 111,
+                        'name': 'flavour_name',
+                        'value': 'flavour_value',
+                    },
+                ],
+            },
+            {
+                'id': 200,
+                'variation': 'Amount',
+                'options': [
+                    {
+                        'id': 211,
+                        'name': 'size_name1',
+                        'value': 'size_value1',
+                    },
+                    {
+                        'id': 222,
+                        'name': 'size_name2',
+                        'value': 'size_value2',
+                    },
+                ],
+            },
+        ],
+    }
+
+    product_category_id = '12345'
+    responses.add(
+        responses.GET,
+        f'https://us.myprotein.com/variations.json?productId={product_category_id}',
+        body=json.dumps(response),
+    )
+
+    flavours, sizes = myprotein.get_all_products(product_category_id)
+
+    assert len(flavours) == 1
+    assert flavours[0] == myprotein.Option(111, 'flavour_name', 'flavour_value')
+
+    TestCase().assertCountEqual(
+        sizes,
+        [
+            myprotein.Option(222, 'size_name2', 'size_value2'),
+            myprotein.Option(211, 'size_name1', 'size_value1'),
+        ],
+    )

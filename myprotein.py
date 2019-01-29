@@ -29,7 +29,7 @@ AddictDict = Any  # pylint: disable=invalid-name
 
 
 class Option(NamedTuple):
-    id: str
+    id: int
     name: str
     value: str
 
@@ -148,12 +148,12 @@ def main() -> None:
         get_all_vouchers()
 
 
-def print_product_information(product_information: List[ProductInformation]) -> None:
+def print_product_information(product_information: List[ProductInformation]) -> None:  # pragma: no cover
     table = [asdict(i) for i in sorted(product_information, key=operator.attrgetter('category', 'size', 'price'))]
     print(tabulate(table, headers='keys'))
 
 
-def get_all_vouchers() -> None:
+def get_all_vouchers() -> None:  # pragma: no cover
     print('Vouchers:')
     print('=' * 80)
     page = requests.get(VOUCHER_URL)
@@ -193,7 +193,8 @@ def get_price_data(product_category_id: str) -> Dict[str, float]:
 
 
 def get_all_products(product_id: str) -> Tuple[List[Option], List[Option]]:
-    url = f'http://us.myprotein.com/variations.json?productId={product_id}'
+    """Query endpoint to get possible product variations (size and flavour)"""
+    url = f'https://us.myprotein.com/variations.json?productId={product_id}'
     response = addict.Dict(requests.get(url).json())
     flavours = [
         Option(**flavour)
