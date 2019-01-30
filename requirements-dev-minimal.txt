@@ -1,3 +1,4 @@
+coverage
 flake8
 mock
 mypy
@@ -6,3 +7,4 @@ pudb
 pylint
 pytest
 requirements-tools
+responses
