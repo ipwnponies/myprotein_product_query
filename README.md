@@ -1,4 +1,5 @@
 # myprotein_product_query
+[![Build Status](https://travis-ci.com/ipwnponies/myprotein_product_query.svg?branch=master)](https://travis-ci.com/ipwnponies/myprotein_product_query)
 ## Overview
 myprotein has sales literally every other day. They always show prices for the product as "starting at" but do not let you easily see the prices of the flavours. Run this script to query the price information for all their products.
 
