@@ -68,6 +68,28 @@ def test_get_price_data(mocked_responses: Any) -> None:
     }
 
 
+def test_get_price_data_bad_response(mocked_responses: Any) -> None:
+    product_category_id = 'test_category'
+    body = r'''
+<html>
+// No data here
+<script type="application/ld+json">
+{
+}
+</script>
+</html>
+    '''
+    mocked_responses.add(
+        responses.GET,
+        f'https://us.myprotein.com/{product_category_id}.html',
+        body=body,
+        content_type='text/html',
+    )
+
+    with pytest.raises(ValueError):
+        myprotein.get_price_data(product_category_id)
+
+
 def test_get_product_information() -> None:
     """Test that get_product_information returns product category key."""
     product_info = {
