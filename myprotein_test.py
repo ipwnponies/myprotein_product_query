@@ -1,4 +1,7 @@
+# Disable redefined function name warning because that's how pytest fixtures work by default
+# pylint: disable=redefined-outer-name
 import json
+from typing import Any
 from unittest import mock
 from unittest import TestCase
 
@@ -10,13 +13,12 @@ from myprotein import ProductInformation
 
 
 @pytest.fixture(autouse=True)
-def mock_responses():  # type: ignore
-    with responses.RequestsMock():
-        yield
+def mocked_responses() -> Any:
+    with responses.RequestsMock() as _responses:
+        yield _responses
 
 
-@responses.activate
-def test_get_price_data() -> None:
+def test_get_price_data(mocked_responses: Any) -> None:
     """Test that get_price_data can parse price data from request."""
     product_category_id = 'test_category'
     body = r'''
@@ -51,7 +53,7 @@ def test_get_price_data() -> None:
 </script>
 </html>
     '''
-    responses.add(
+    mocked_responses.add(
         responses.GET,
         f'https://us.myprotein.com/{product_category_id}.html',
         body=body,
@@ -85,8 +87,7 @@ def test_get_product_information_not_found() -> None:
             myprotein.get_product_information('not a real thing')
 
 
-@responses.activate
-def test_get_all_products() -> None:
+def test_get_all_products(mocked_responses: Any) -> None:
     response = {
         'variations': [
             {
@@ -120,7 +121,7 @@ def test_get_all_products() -> None:
     }
 
     product_category_id = '12345'
-    responses.add(
+    mocked_responses.add(
         responses.GET,
         f'https://us.myprotein.com/variations.json?productId={product_category_id}',
         body=json.dumps(response),
