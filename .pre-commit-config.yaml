@@ -57,3 +57,11 @@ repos:
   rev: v0.650
   hooks:
   - id: mypy
+- repo: https://github.com/pre-commit/mirrors-autopep8
+  sha: v1.4.3
+  hooks:
+  - id: autopep8
+- repo: https://github.com/PyCQA/flake8
+  sha: 3.7.5
+  hooks:
+  - id: flake8
