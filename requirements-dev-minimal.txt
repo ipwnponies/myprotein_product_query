@@ -1,6 +1,5 @@
 coverage
 flake8
-ipython
 mock
 mypy
 pre-commit
