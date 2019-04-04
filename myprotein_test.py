@@ -354,3 +354,29 @@ def test_resolve_options_to_product_id_bad_response(mock_responses_with_default_
 
     with pytest.raises(ValueError):
         myprotein.resolve_options_to_product_id(product_category_id, flavour, size)
+
+
+@pytest.mark.usefixtures('mock_responses_with_default_product_information')
+def test_get_default_product_not_found() -> None:
+    # Same as in fixture, because that's the default value
+    product_category_id = '10852500'
+
+    default_product_id = myprotein.get_default_product_not_found(product_category_id)
+
+    # From fixture hardcoded response
+    assert default_product_id == '1111'
+
+
+def test_get_default_product_not_found_bad_response(mock_responses_with_default_product_information: Any) -> None:
+    # Same as in fixture, because that's the default value
+    product_category_id = '10852500'
+
+    mock_responses_with_default_product_information.replace(
+        responses.GET,
+        f'https://us.myprotein.com/{product_category_id}.variations',
+        body='',
+        content_type='text/html',
+    )
+
+    with pytest.raises(ValueError, match='Could not get data to resolve options to product id.'):
+        myprotein.get_default_product_not_found(product_category_id)

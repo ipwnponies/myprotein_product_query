@@ -1,6 +1,7 @@
 .*.swp
 *.py[co]
 
+/coverage-html/
 /venv/
 /.mypy_cache/
 
