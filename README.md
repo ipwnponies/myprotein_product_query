@@ -1,6 +1,8 @@
 # myprotein_product_query
 
 [![Build Status](https://travis-ci.com/ipwnponies/myprotein_product_query.svg?branch=master)](https://travis-ci.com/ipwnponies/myprotein_product_query)
+[![Coverage Status](https://img.shields.io/coveralls/github/ipwnponies/myprotein_product_query.svg)](https://coveralls.io/github/ipwnponies/myprotein_product_query?branch=master)
+![license](https://img.shields.io/github/license/ipwnponies/myprotein_product_query.svg)
 
 ## Overview
 
