@@ -113,7 +113,7 @@ def get_product_information(name: str) -> str:
     raise Exception('This should not happen, name should always match product category.')
 
 
-def main() -> None:
+def main() -> None:  # pragma: no cover
     args = parse_cli()
 
     product_information: List[ProductInformation] = []
