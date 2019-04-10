@@ -85,8 +85,8 @@ def parse_cli() -> argparse.Namespace:  # pragma: no cover
     def element_in_list(element: str) -> str:
         if element not in all_product_categories:
             raise KeyError(f'{element} is not in list. Use -l to see all possible values.')
-        else:
-            return element
+
+        return element
 
     parser.add_argument(
         'product_categories',
@@ -113,7 +113,7 @@ def get_product_information(name: str) -> str:
     raise Exception('This should not happen, name should always match product category.')
 
 
-def main() -> None:
+def main() -> None:  # pragma: no cover
     args = parse_cli()
 
     product_information: List[ProductInformation] = []

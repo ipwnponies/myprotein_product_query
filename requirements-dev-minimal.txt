@@ -6,6 +6,7 @@ pre-commit
 pudb
 pylint
 pytest
+pytest-antilru
 pytest-sugar
 pytest-watch
 requirements-tools
