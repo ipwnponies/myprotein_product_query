@@ -65,3 +65,7 @@ repos:
   sha: 3.7.5
   hooks:
   - id: flake8
+- repo: https://github.com/igorshubovych/markdownlint-cli
+  rev: v0.14.0
+  hooks:
+  - id: markdownlint
