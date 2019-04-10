@@ -50,7 +50,7 @@ But we need to resolve to sku first.
 
 Query `/{product_id}.variations` with flavour and size options in json body:
 
-```json
+```python
 {
     # No idea what this means but it needs to be set to 2.
     # Otherwise API ignores other parameters and returns default product (unflavoured)
