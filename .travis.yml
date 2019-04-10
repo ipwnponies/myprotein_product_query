@@ -1,11 +1,14 @@
 ---
 dist: xenial
-sudo: true
 language: python
 python:
   - '3.7'
-install: []
+install:
+  - pip install coveralls
 script: make test
+after_success:
+  - coveralls
 cache:
-  - $HOME/.cache/pip
-  - $HOME/.cache/pre-commit
+  pip: true
+  directories:
+    - $HOME/.cache/pre-commit
