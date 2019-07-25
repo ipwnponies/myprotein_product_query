@@ -4,12 +4,15 @@ import concurrent.futures
 import itertools
 import json
 import operator
+
 # pylint doesn't work correctly locally and in TravisCI env. This can be removed when isort releases updated version
 # noreorder pylint: disable=wrong-import-order
 from dataclasses import asdict
 from dataclasses import dataclass
+
 # noreorder pylint: enable=wrong-import-order
 from functools import lru_cache
+
 # Disable wrong-import-order until isort is fixed to recognize dataclasses as standard
 # noreorder pylint: disable=wrong-import-order
 from typing import Any
@@ -67,18 +70,9 @@ VOUCHER_URL = 'https://us.myprotein.com/voucher-codes.list'
 def parse_cli() -> argparse.Namespace:  # pragma: no cover
     parser = argparse.ArgumentParser()
 
-    parser.add_argument(
-        '--vouchers',
-        help='Show current vouchers',
-        action='store_true',
-    )
+    parser.add_argument('--vouchers', help='Show current vouchers', action='store_true')
 
-    parser.add_argument(
-        '-l',
-        '--list',
-        help='List possible product categories to query',
-        action='store_true',
-    )
+    parser.add_argument('-l', '--list', help='List possible product categories to query', action='store_true')
 
     all_product_categories = sorted(i.category for i in PRODUCT_INFORMATION.values())
 
@@ -131,16 +125,14 @@ def main() -> None:  # pragma: no cover
             }
 
             for future in tqdm(
-                    concurrent.futures.as_completed(futures_arguments),
-                    total=len(futures_arguments),
-                    unit='items',
+                concurrent.futures.as_completed(futures_arguments), total=len(futures_arguments), unit='items'
             ):
                 flavour, size = futures_arguments[future]
                 try:
                     product_id = future.result()
                     category = PRODUCT_INFORMATION[product_category_id].category
                     product_information.append(
-                        ProductInformation(category, flavour.name, size.name, price_data[product_id]),
+                        ProductInformation(category, flavour.name, size.name, price_data[product_id])
                     )
                 except ProductNotExistError as exc:
                     tqdm.write(f'Variation does not exist, skipping... {exc}')
@@ -267,11 +259,13 @@ def resolve_options_to_product_id(product_category_id: str, flavour: Option, siz
     default_product_information = PRODUCT_INFORMATION[product_category_id]
 
     # IFF not the actually the default product
-    if all({
+    if all(
+        {
             product_id == default_product_id,
             flavour.name != default_product_information.flavour,
             size.name != default_product_information.size,
-    }):
+        }
+    ):
         raise ProductNotExistError(f'Flavour {flavour} and size {size} does not exist.')
 
     return cast(str, product_id_node['data-child-id'])
