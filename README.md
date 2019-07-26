@@ -24,8 +24,10 @@ virtualenv_run/bin/python myprotein [--whey] [--creatine] [--vouchers]
 
 The output is a tuple of product name and price, delimited by a tab.
 
-    "Whey Protein Flavour 2.2 lb"   "$xx.xx"
-    "Whey Protein Flavour 5.5 lb"   "$xx.xx"
+```text
+"Whey Protein Flavour 2.2 lb"   "$xx.xx"
+"Whey Protein Flavour 5.5 lb"   "$xx.xx"
+```
 
 Sorting can be done with `sort`.
 

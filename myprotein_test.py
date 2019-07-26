@@ -80,18 +80,12 @@ def test_get_price_data(mocked_responses: Any) -> None:
 </html>
     '''
     mocked_responses.add(
-        responses.GET,
-        f'https://us.myprotein.com/{product_category_id}.html',
-        body=body,
-        content_type='text/html',
+        responses.GET, f'https://us.myprotein.com/{product_category_id}.html', body=body, content_type='text/html'
     )
 
     actual = myprotein.get_price_data(product_category_id)
 
-    assert actual == {
-        '456': 456.0,
-        '999': 999.0,
-    }
+    assert actual == {'456': 456.0, '999': 999.0}
 
 
 def test_get_price_data_bad_response(mocked_responses: Any) -> None:
@@ -106,10 +100,7 @@ def test_get_price_data_bad_response(mocked_responses: Any) -> None:
 </html>
     '''
     mocked_responses.add(
-        responses.GET,
-        f'https://us.myprotein.com/{product_category_id}.html',
-        body=body,
-        content_type='text/html',
+        responses.GET, f'https://us.myprotein.com/{product_category_id}.html', body=body, content_type='text/html'
     )
 
     with pytest.raises(ValueError):
@@ -118,18 +109,14 @@ def test_get_price_data_bad_response(mocked_responses: Any) -> None:
 
 def test_get_product_information() -> None:
     """Test that get_product_information returns product category key."""
-    product_info = {
-        '12345': ProductInformation('test_name', 'test_flavour', 'test_size', 9.9),
-    }
+    product_info = {'12345': ProductInformation('test_name', 'test_flavour', 'test_size', 9.9)}
     with mock.patch.object(myprotein, 'PRODUCT_INFORMATION', product_info, spec_set=True):
         assert myprotein.get_product_information('test_name') == '12345'
 
 
 def test_get_product_information_not_found() -> None:
     """Test that get_product_information raises Error if product is not in known list."""
-    product_info = {
-        '12345': ProductInformation('test_name', 'test_flavour', 'test_size', 9.9),
-    }
+    product_info = {'12345': ProductInformation('test_name', 'test_flavour', 'test_size', 9.9)}
     with mock.patch.object(myprotein, 'PRODUCT_INFORMATION', product_info, spec_set=True):
         with pytest.raises(Exception):
             myprotein.get_product_information('not a real thing')
@@ -141,31 +128,17 @@ def test_get_all_products(mocked_responses: Any) -> None:
             {
                 'id': 100,
                 'variation': 'Flavour',
-                'options': [
-                    {
-                        'id': 111,
-                        'name': 'flavour_name',
-                        'value': 'flavour_value',
-                    },
-                ],
+                'options': [{'id': 111, 'name': 'flavour_name', 'value': 'flavour_value'}],
             },
             {
                 'id': 200,
                 'variation': 'Amount',
                 'options': [
-                    {
-                        'id': 211,
-                        'name': 'size_name1',
-                        'value': 'size_value1',
-                    },
-                    {
-                        'id': 222,
-                        'name': 'size_name2',
-                        'value': 'size_value2',
-                    },
+                    {'id': 211, 'name': 'size_name1', 'value': 'size_value1'},
+                    {'id': 222, 'name': 'size_name2', 'value': 'size_value2'},
                 ],
             },
-        ],
+        ]
     }
 
     product_category_id = '12345'
@@ -181,11 +154,7 @@ def test_get_all_products(mocked_responses: Any) -> None:
     assert flavours[0] == myprotein.Option(111, 'flavour_name', 'flavour_value')
 
     TestCase().assertCountEqual(
-        sizes,
-        [
-            myprotein.Option(222, 'size_name2', 'size_value2'),
-            myprotein.Option(211, 'size_name1', 'size_value1'),
-        ],
+        sizes, [myprotein.Option(222, 'size_name2', 'size_value2'), myprotein.Option(211, 'size_name1', 'size_value1')]
     )
 
 
@@ -287,7 +256,9 @@ def test_resolve_options_to_product_id_default_product(mock_responses_with_defau
         data-information-current-quantity-basket="0"
         data-information-maximum-allowed-quantity="5000"
     >
-    '''.format(product_category_id)
+    '''.format(
+        product_category_id
+    )
 
     mock_responses_with_default_product_information.add(
         responses.POST,
@@ -372,10 +343,7 @@ def test_get_default_product_not_found_bad_response(mock_responses_with_default_
     product_category_id = '10852500'
 
     mock_responses_with_default_product_information.replace(
-        responses.GET,
-        f'https://us.myprotein.com/{product_category_id}.variations',
-        body='',
-        content_type='text/html',
+        responses.GET, f'https://us.myprotein.com/{product_category_id}.variations', body='', content_type='text/html'
     )
 
     with pytest.raises(ValueError, match='Could not get data to resolve options to product id.'):
