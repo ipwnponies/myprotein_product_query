@@ -13,8 +13,8 @@ test: venv ## Run tests
 	venv/bin/mypy *.py
 	venv/bin/check-requirements
 	venv/bin/coverage run -m pytest --strict *_test.py
-	venv/bin/coverage report --show-missing --skip-covered --fail-under 100 --omit '*_test.py'
-	venv/bin/coverage report --show-missing --skip-covered --fail-under 100 --include '*_test.py'
+	venv/bin/coverage report --fail-under 100 --omit '*_test.py'
+	venv/bin/coverage report --fail-under 100 --include '*_test.py'
 	venv/bin/pre-commit install -f --install-hooks
 	venv/bin/pre-commit run --all-files
 
