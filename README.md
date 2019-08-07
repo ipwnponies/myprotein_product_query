@@ -3,6 +3,7 @@
 [![Build Status](https://travis-ci.com/ipwnponies/myprotein_product_query.svg?branch=master)](https://travis-ci.com/ipwnponies/myprotein_product_query)
 [![Coverage Status](https://img.shields.io/coveralls/github/ipwnponies/myprotein_product_query.svg)](https://coveralls.io/github/ipwnponies/myprotein_product_query?branch=master)
 ![license](https://img.shields.io/github/license/ipwnponies/myprotein_product_query.svg)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
 
 ## Overview
 
