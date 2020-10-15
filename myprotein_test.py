@@ -1,6 +1,5 @@
 # Disable redefined function name warning because that's how pytest fixtures work by default
 # pylint: disable=redefined-outer-name
-import json
 from typing import Any
 from typing import Iterator
 from unittest import mock
@@ -123,44 +122,56 @@ def test_get_product_information_not_found() -> None:
 
 
 def test_get_all_products(mocked_responses: Any) -> None:
-    response = {
-        'variations': [
-            {
-                'id': 100,
-                'variation': 'Flavour',
-                'options': [{'id': 111, 'name': 'flavour_name', 'value': 'flavour_value'}],
-            },
-            {
-                'id': 200,
-                'variation': 'Amount',
-                'options': [
-                    {'id': 211, 'name': 'size_name1', 'value': 'size_value1'},
-                    {'id': 222, 'name': 'size_name2', 'value': 'size_value2'},
-                ],
-            },
-        ]
-    }
-
+    # This is a mocked snippet and apsires to demonstrate the rough structure of page
+    body = '''
+        <html>
+            <div class="athenaProductPage_productVariations">
+                <div class="athenaProductVariations">
+                    <div role="group" aria-label="Flavor">
+                        <div class="athenaProductVariations_dropdownSegment">
+                            <select id="athena-product-variation-dropdown-5">
+                                <option class="" value="111">
+                                    flavour_name
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                    <div role="group" aria-label="Amount" data-product-variation="">
+                        <div class="athenaProductVariations_radioBoxesSegment" data-product-variation-type="radio">
+                            <div class="athenaProductVariations_boxes">
+                                <ul class="athenaProductVariations_list" aria-label="Amount">
+                                    <li class="athenaProductVariations_listItem">
+                                        <button class="athenaProductVariations_box default" data-option-id="211" >
+                                            size_name1
+                                        </button>
+                                    </li>
+                                    <li class="athenaProductVariations_listItem">
+                                        <button class="athenaProductVariations_box default" data-option-id="222" >
+                                            size_name2
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </html>
+        '''
     product_category_id = '12345'
-    mocked_responses.add(
-        responses.GET,
-        f'https://us.myprotein.com/variations.json?productId={product_category_id}',
-        body=json.dumps(response),
-    )
+    mocked_responses.add(responses.GET, f'https://us.myprotein.com/{product_category_id}.html', body=body)
 
     flavours, sizes = myprotein.get_all_products(product_category_id)
 
     assert len(flavours) == 1
-    assert flavours[0] == myprotein.Option(111, 'flavour_name', 'flavour_value')
+    assert flavours[0] == myprotein.Option(111, 'flavour_name')
 
-    TestCase().assertCountEqual(
-        sizes, [myprotein.Option(222, 'size_name2', 'size_value2'), myprotein.Option(211, 'size_name1', 'size_value1')]
-    )
+    TestCase().assertCountEqual(sizes, [myprotein.Option(222, 'size_name2'), myprotein.Option(211, 'size_name1')])
 
 
 def test_resolve_options_to_product_id(mock_responses_with_default_product_information: Any) -> None:
-    flavour = myprotein.Option(111, 'name', 'value')
-    size = myprotein.Option(222, 'name', 'value')
+    flavour = myprotein.Option(111, 'name')
+    size = myprotein.Option(222, 'name')
     # impact whey
     product_category_id = '10852500'
 
@@ -245,8 +256,8 @@ def test_resolve_options_to_product_id_default_product(mock_responses_with_defau
     product_category_id = '10852500'
 
     # Queried option matches the default product
-    flavour = myprotein.Option(111, 'Unflavored', 'Unflavored')
-    size = myprotein.Option(222, '2.2 lb', '2.2 lb')
+    flavour = myprotein.Option(111, 'Unflavored')
+    size = myprotein.Option(222, '2.2 lb')
 
     product_response = '''
     <div
@@ -281,8 +292,8 @@ def test_resolve_options_to_product_id_product_not_found(mock_responses_with_def
     product_category_id = '10852500'
 
     # Queried options do not match default product
-    flavour = myprotein.Option(111, 'name', 'value')
-    size = myprotein.Option(222, 'name', 'value')
+    flavour = myprotein.Option(111, 'name')
+    size = myprotein.Option(222, 'name')
 
     default_product_response = '''
     <div
@@ -313,8 +324,8 @@ def test_resolve_options_to_product_id_bad_response(mock_responses_with_default_
 
     # impact whey
     product_category_id = '10852500'
-    flavour = myprotein.Option(111, 'name', 'value')
-    size = myprotein.Option(222, 'name', 'value')
+    flavour = myprotein.Option(111, 'name')
+    size = myprotein.Option(222, 'name')
 
     mock_responses_with_default_product_information.add(
         responses.POST,

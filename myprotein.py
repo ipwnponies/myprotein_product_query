@@ -37,7 +37,6 @@ AddictDict = Any  # pylint: disable=invalid-name
 class Option(NamedTuple):
     id: int
     name: str
-    value: str
 
 
 @dataclass
@@ -58,6 +57,7 @@ PRODUCT_INFORMATION = {
     '10852500': ProductInformation('impact_whey', 'Unflavored', '2.2 lb', 0.0),
     '11464969': ProductInformation('whey_pouch', 'Vanilla', '0.55 lb', 0.0),
     '10852482': ProductInformation('whey_isolate', 'Unflavored', '2.2 lb', 0.0),
+    '11181407': ProductInformation('impact_blend', 'Unflavored', '2.2 lb', 0.0),
     '11111095': ProductInformation('iospro', 'Unflavored', '1.1 lb', 0.0),
     # Creatine
     '10852407': ProductInformation('creatine_monohydrate', 'Unflavored', '2.2 lb', 0.0),
@@ -189,21 +189,14 @@ def get_price_data(product_category_id: str) -> Dict[str, float]:
 
 def get_all_products(product_id: str) -> Tuple[List[Option], List[Option]]:
     """Query endpoint to get possible product variations (size and flavour)"""
-    url = f'https://us.myprotein.com/variations.json?productId={product_id}'
-    response = addict.Dict(requests.get(url).json())
-    flavours = [
-        Option(**flavour)
-        for variation in response.variations
-        for flavour in variation.options
-        if variation.variation == 'Flavour'
-    ]
+    response = requests.get(f'https://us.myprotein.com/{product_id}.html')
+    dom = bs4.BeautifulSoup(response.text, 'html.parser')
 
-    sizes = [
-        Option(**size)
-        for variation in response.variations
-        for size in variation.options
-        if variation.variation == 'Amount'
-    ]
+    products = dom.select('#athena-product-variation-dropdown-5 option')
+    flavours = [Option(int(i['value']), i.text.strip()) for i in products]
+
+    sizes = dom.select('.athenaProductVariations_list button')
+    sizes = [Option(int(i['data-option-id']), name=i.text.strip()) for i in sizes]
 
     return flavours, sizes
 
